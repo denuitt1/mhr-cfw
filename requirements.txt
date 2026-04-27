@@ -1,0 +1,8 @@
+# Core (no external dependencies for basic modes)
+# Python 3.10+ required
+
+# Optional: MITM interception (apps_script mode)
+cryptography>=41.0.0
+
+# Optional: HTTP/2 multiplexing (faster apps_script relay)
+h2>=4.1.0
