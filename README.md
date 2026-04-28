@@ -59,12 +59,6 @@ pip install -r requirements.txt
    const WORKER_URL = "myworker.workers.dev";
    ```
 6. Click **Deploy**.
-7. Choose **Web app** as the type.
-8. Set:
-   - **Execute as:** Me
-   - **Who has access:** Anyone
-9. Click **Deploy**.
-10. **Copy the Deployment ID** (it looks like a long random string). You'll need it in the next step.
 
 ### 3 - Set Up the Google Relay (Code.gs)
 
