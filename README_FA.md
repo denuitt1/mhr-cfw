@@ -1,5 +1,6 @@
 # آموزش راه‌اندازی پروژه (Cloudflare Worker + Google Apps Script)
-
+| [English](README.md) | [Persian](README_FA.md) |
+| :---: | :---: |
 
 Persian translation was provided by [pingplas_channel](https://t.me/pingplas_channel)
 
