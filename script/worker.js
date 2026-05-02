@@ -9,6 +9,16 @@ export default {
         return json({ e: "loop detected" }, 508);
       }
 
+      if (request.method !== "POST") {
+        return new Response(
+          "<!DOCTYPE html><html><head><title>Relay Active</title></head>" +
+            '<body style="font-family:sans-serif;max-width:600px;margin:40px auto">' +
+            "<h1>Relay Active</h1><p>Cloudflare Worker routing enabled.</p>" +
+            "</body></html>",
+          { status: 200, headers: { "content-type": "text/html; charset=utf-8" } }
+        );
+      }
+
       const req = await request.json();
 
       if (!req.u) {
