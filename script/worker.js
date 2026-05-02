@@ -13,7 +13,8 @@ export default {
         return new Response(
           "<!DOCTYPE html><html><head><title>Relay Active</title></head>" +
             '<body style="font-family:sans-serif;max-width:600px;margin:40px auto">' +
-            "<h1>Relay Active</h1><p>Cloudflare Worker routing enabled.</p>" +
+            '<h1>Relay <span style="color:#16a34a;font-weight:700">Active</span></h1>' +
+            "<p>Cloudflare Worker routing enabled.</p>" +
             "</body></html>",
           { status: 200, headers: { "content-type": "text/html; charset=utf-8" } }
         );
