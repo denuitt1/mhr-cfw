@@ -1,15 +1,4 @@
-/**
- * DomainFront Relay — Google Apps Script With Cloudflare Worker Exit
- *
- * FLOW:
- *   Client → GAS (Google Apps Script) → CFW (Cloudflare Worker) → Internet
- *
- * MODES:
- *   1. Single:  POST { k, m, u, h, b, ct, r }       → { s, h, b }
- *   2. Batch:   POST { k, q: [{m,u,h,b,ct,r}, ...] } → { q: [{s,h,b}, ...] }
- *
- * CHANGE THESE:
-*/
+// Google Apps Script File
 
 const AUTH_KEY = "STRONG_SECRET_KEY";
 const WORKER_URL = "https://example.workers.dev";
