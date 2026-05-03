@@ -29,6 +29,7 @@
 - [مرحله ۵ — اجرا](#مرحله-۵--اجرا)
 - [مرحله ۶ — تنظیم مرورگر](#مرحله-۶--تنظیم-مرورگر)
 - [مرحله ۷ — تست اتصال](#مرحله-۷--تست-اتصال)
+- [اختیاری — IP خروجی پایدار با Upstream Forwarder](#اختیاری--ip-خروجی-پایدار-با-upstream-forwarder)
 - [تنظیمات پیشرفته config.json](#تنظیمات-پیشرفته-configjson)
 - [ابزار اسکن IP گوگل](#ابزار-اسکن-ip-گوگل)
 - [اشتراک‌گذاری در شبکه محلی (LAN)](#اشتراکگذاری-در-شبکه-محلی-lan)
@@ -449,6 +450,76 @@ Port     : 1080
 - IP واقعی شما نباید نمایش داده شود
 
 **۳.** تست دسترسی به سایت فیلترشده: هر سایتی که قبلاً در دسترس نبود را امتحان کنید.
+
+---
+
+## اختیاری — IP خروجی پایدار با Upstream Forwarder
+
+سایت‌هایی که از CAPTCHA استفاده می‌کنند (Cloudflare Turnstile، reCAPTCHA، hCaptcha) توکن حل‌شده را به IP بازکننده‌ی چالش گره می‌زنند. Cloudflare Worker در هر درخواست از IP متفاوتی خروج می‌گیرد، بنابراین حتی پس از حل CAPTCHA، تأیید سمت سرور رد می‌شود. این افزونه‌ی اختیاری به Worker اجازه می‌دهد همه‌ی `fetch()` ها را از طریق یک سرور Node کوچک روی VPS شما (با IP ثابت) عبور دهد — به‌طوری که سایت مقصد همیشه یک IP خروجی ثابت ببیند.
+
+### چه زمانی به این نیاز دارید
+
+- سایت‌های پشت Cloudflare bot challenge شما را به‌صورت حلقه‌ای به صفحه‌ی چالش برمی‌گردانند.
+- فرم لاگین بعد از حل reCAPTCHA/hCaptcha رد می‌شود.
+- نیاز به پایداری کوکی بین درخواست‌ها دارید (مثل `cf_clearance`).
+
+اگر این مشکلات را ندارید، آن را تنظیم نکنید — Worker دقیقاً مثل قبل کار می‌کند.
+
+### چرا به سرور جداگانه نیاز است
+
+Cloudflare Worker آی‌پی خروجی ثابتی ندارد — هر `fetch()` از یک IP در شبکه‌ی edge کلودفلر خارج می‌شود که دائماً تغییر می‌کند، و دقیقاً همین چیزی است که توکن‌های CAPTCHA وابسته به IP را می‌شکند. گزینه‌های static egress خود کلودفلر (BYOIP، Egress Workers) فقط در پلن Enterprise در دسترس‌اند، بنابراین یک VPS کوچک با IP ثابت ساده‌ترین راه‌حل عملی است. forwarder فقط یک پراکسی نازک است که `fetch()` را از یک آدرس ثابت بازارسال می‌کند.
+
+### ۱. اجرای forwarder روی VPS
+
+پیاده‌سازی مرجع در فایل [`script/upstream_forwarder.js`](script/upstream_forwarder.js) قرار دارد. به Node نسخه ۱۸+ نیاز دارد و هیچ وابستگی خارجی ندارد. آن را پشت Caddy یا nginx با TLS اجرا کنید — Worker آدرس‌های غیر HTTPS را نمی‌پذیرد.
+
+```bash
+# روی VPS (مثال Ubuntu/Debian):
+sudo apt install -y nodejs   # باید نسخه ۱۸ یا بالاتر باشد
+export AUTH_KEY="یک-کلید-تصادفی-حداقل-۳۲-کاراکتر"
+export PORT=8787
+node script/upstream_forwarder.js
+```
+
+تنظیم Caddy برای TLS خودکار:
+
+```
+forwarder.example.com {
+    reverse_proxy 127.0.0.1:8787
+}
+```
+
+تست سریع:
+
+```bash
+curl -X POST https://forwarder.example.com/fwd \
+  -H "x-upstream-auth: $AUTH_KEY" \
+  -H "content-type: application/json" \
+  -d '{"u":"https://httpbin.org/ip","m":"GET","h":{}}'
+```
+
+پاسخ دیکد‌شده باید **IP خود VPS** را نشان دهد.
+
+### ۲. اتصال Worker به forwarder
+
+در Cloudflare dashboard → Worker شما → **Settings → Variables and Secrets**:
+
+| نام | نوع | مقدار |
+|-----|-----|-------|
+| `UPSTREAM_FORWARDER_URL` | Secret | `https://forwarder.example.com/fwd` |
+| `UPSTREAM_AUTH_KEY` | Secret | همان `AUTH_KEY` که روی VPS گذاشتید |
+| `UPSTREAM_FAIL_MODE` | Variable | پیش‌فرض `closed` — در صورت خطای forwarder کد ۵۰۲ بازمی‌گرداند. مقدار `open` باعث می‌شود به fetch مستقیم برگردد. |
+| `UPSTREAM_TIMEOUT_MS` | Variable (اختیاری) | پیش‌فرض `25000` |
+
+ذخیره و Worker را دوباره Deploy کنید.
+
+### ۳. تست
+
+از طریق پروکسی به `https://httpbin.org/ip` بروید — باید **IP VPS** را ببینید، نه Cloudflare. سپس سایتی که قبلاً CAPTCHA آن کار نمی‌کرد را امتحان کنید — چالش باید این بار به‌درستی تأیید شود.
+
+> forwarder بدون `AUTH_KEY` راه‌اندازی نمی‌شود. هر کسی که آدرس و کلید را داشته باشد می‌تواند از آن به‌عنوان رله استفاده کند، بنابراین هر دو را محرمانه نگه دارید.
+
+---
 
 ## تنظیمات پیشرفته config.json
 

@@ -105,5 +105,81 @@ Open [ipleak.net](https://ipleak.net) in your browser, you should see your ip ad
 
 ---
 
+## Optional: Stable Exit IP via Upstream Forwarder
+
+CAPTCHAs (Cloudflare Turnstile/bot challenge, reCAPTCHA, hCaptcha) bind tokens
+to the IP that solved the challenge. Cloudflare Workers exit through different
+edge IPs per request, so verification on the target site fails even when you
+solve the challenge. This optional add-on lets the Worker forward all `fetch()`
+calls through a small Node server you run on a VPS with a stable IP — giving
+the target site one consistent exit address.
+
+### When you need this
+
+- Sites behind Cloudflare's bot challenge keep looping you back to the challenge page.
+- Login forms reject you after solving a reCAPTCHA/hCaptcha.
+- You need cookie continuity across requests (e.g. `cf_clearance`).
+
+If you don't hit these, leave it unconfigured — the Worker behaves exactly as before.
+
+### Why a separate server is required
+
+Cloudflare Workers don't expose a stable outbound IP — `fetch()` exits through a rotating pool of Cloudflare edge IPs, which is exactly what breaks IP-bound CAPTCHA tokens. Cloudflare's static-egress options (BYOIP, Egress Workers) are Enterprise-tier, so a small VPS with a static IP is the practical workaround. The forwarder is just a thin proxy that re-issues the `fetch()` from a stable address.
+
+### 1. Deploy the forwarder on a VPS
+
+The reference implementation is [`script/upstream_forwarder.js`](script/upstream_forwarder.js).
+It needs Node 18+ and no dependencies. Run it behind Caddy or nginx with TLS —
+the Worker rejects non-HTTPS forwarder URLs.
+
+```bash
+# On your VPS (Ubuntu/Debian example):
+sudo apt install -y nodejs   # must be 18+
+export AUTH_KEY="some-long-random-string-at-least-32-chars"
+export PORT=8787
+node script/upstream_forwarder.js
+```
+
+Front it with Caddy for auto-TLS:
+
+```
+forwarder.example.com {
+    reverse_proxy 127.0.0.1:8787
+}
+```
+
+Quick smoke test:
+
+```bash
+curl -X POST https://forwarder.example.com/fwd \
+  -H "x-upstream-auth: $AUTH_KEY" \
+  -H "content-type: application/json" \
+  -d '{"u":"https://httpbin.org/ip","m":"GET","h":{}}'
+```
+
+The decoded response body should show the **VPS's IP**.
+
+### 2. Wire the Worker to the forwarder
+
+In the Cloudflare dashboard → your Worker → **Settings → Variables and Secrets**:
+
+| Name | Type | Value |
+|---|---|---|
+| `UPSTREAM_FORWARDER_URL` | Secret | `https://forwarder.example.com/fwd` |
+| `UPSTREAM_AUTH_KEY` | Secret | the same `AUTH_KEY` you set on the VPS |
+| `UPSTREAM_FAIL_MODE` | Variable | `closed` (default) — return 502 on forwarder failure. Use `open` to fall back to direct fetch. |
+| `UPSTREAM_TIMEOUT_MS` | Variable (optional) | default `25000` |
+
+Save and redeploy the Worker.
+
+### 3. Verify
+
+Browse `https://httpbin.org/ip` through the proxy — you should see the **VPS's IP**, not Cloudflare's. Then revisit a CAPTCHA-protected site that wasn't working — the challenge should now validate.
+
+> The forwarder must require auth. Without `AUTH_KEY` it refuses to start. Anyone with the URL and key can use it as a relay, so keep both secret.
+
+
+---
+
 ## Sources for this project
 - https://github.com/masterking32/MasterHttpRelayVPN
