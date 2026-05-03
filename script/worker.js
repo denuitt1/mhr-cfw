@@ -13,6 +13,14 @@ export default {
         return json({ e: "loop detected" }, 508);
       }
 
+      if (request.method == "GET") {
+        return json({ e: "Relay is Active." }, 200);
+      }
+
+      if (request.method !== "POST") {
+        return json({ e: "Method not allowed." }, 405);
+      }
+
       const req = await request.json();
 
       if (!req.u) {
