@@ -156,7 +156,6 @@ function renderSystem(info) {
     ["OS", info.os],
     ["Machine", info.machine],
     ["Hostname", info.hostname],
-    ["PID", info.pid],
     ["CWD", info.cwd],
   ];
   for (const [k, v] of fields) {
@@ -174,13 +173,7 @@ function renderLan(lan) {
   const box = document.querySelector("#card-lan .lan-info");
   if (!box) return;
   box.innerHTML = "";
-  if (!lan.enabled) {
-    const p = document.createElement("p");
-    p.className = "hint";
-    p.textContent = "Off — proxy bound to loopback only. Flip the switch to expose it on your LAN.";
-    box.appendChild(p);
-    return;
-  }
+  if (!lan.enabled) return;
   const addLine = (label, items) => {
     if (!items || !items.length) return;
     const row = document.createElement("div");
@@ -499,7 +492,10 @@ const CONFIG_GROUPS = {
     "script_ids",
     "verify_ssl", "parallel_relay",
     "relay_timeout",
+  ],
+  Upstream: [
     "upstream_forwarder_url",
+    "forwarder_hosts",
   ],
   Listeners: [
     "listen_host", "listen_port",
@@ -519,6 +515,11 @@ const CONFIG_GROUPS = {
     "chunked_download_min_size", "chunked_download_chunk_size",
     "chunked_download_max_parallel", "chunked_download_max_chunks",
   ],
+};
+
+const CONFIG_DEFAULTS = {
+  forwarder_hosts: [],
+  upstream_forwarder_url: "",
 };
 
 const HIDDEN_CONFIG_KEYS = new Set([
@@ -561,6 +562,9 @@ async function loadConfig() {
     return;
   }
   currentConfig = res.data;
+  for (const [k, v] of Object.entries(CONFIG_DEFAULTS)) {
+    if (!(k in currentConfig)) currentConfig[k] = Array.isArray(v) ? [...v] : v;
+  }
   setBindings(currentConfig);
 
   const form = document.getElementById("config-form");
