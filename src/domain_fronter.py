@@ -137,6 +137,9 @@ class DomainFronter:
         self._per_site: dict[str, HostStat] = {}
         self._stats_task: asyncio.Task | None = None
 
+        self._last_ok_via_gas: float = 0.0
+        self._last_ok_via_worker_chain: float = 0.0
+
         self.auth_key = config.get("auth_key", "")
         self.verify_ssl = config.get("verify_ssl", True)
         self._relay_timeout = self._cfg_float(
@@ -639,6 +642,101 @@ class DomainFronter:
             "parallel_relay": self._parallel_relay,
         }
 
+    def _record_chain_health(self, raw: bytes, errored: bool) -> None:
+        if errored or not raw:
+            return
+        now = time.time()
+        self._last_ok_via_gas = now
+        status, _, _ = self._split_raw_response(raw)
+        if 200 <= status < 400:
+            self._last_ok_via_worker_chain = now
+
+    def passive_script_health(self, sid: str) -> dict:
+        now = time.time()
+        sid_short = sid[-12:] if len(sid) > 12 else sid
+        base = {"sid": sid, "sid_short": sid_short}
+        until = self._sid_blacklist.get(sid, 0.0)
+        if until and until > now:
+            return {**base,
+                    "state": "red",
+                    "reason": "blacklisted",
+                    "expires_in_s": int(until - now)}
+        if self._last_ok_via_gas and (now - self._last_ok_via_gas) < 60:
+            return {**base,
+                    "state": "green",
+                    "reason": "recent relay traffic",
+                    "last_seen_s": int(now - self._last_ok_via_gas)}
+        return {**base,
+                "state": "amber",
+                "reason": "no recent traffic"}
+
+    def passive_chain_health(self) -> dict:
+        now = time.time()
+        if self._last_ok_via_worker_chain and (now - self._last_ok_via_worker_chain) < 60:
+            return {
+                "state": "green",
+                "last_seen_s": int(now - self._last_ok_via_worker_chain),
+            }
+        if self._last_ok_via_gas and (now - self._last_ok_via_gas) < 60:
+            return {
+                "state": "amber",
+                "reason": "GAS responding but no 2xx upstream lately",
+            }
+        return {
+            "state": "amber",
+            "reason": "no recent traffic",
+        }
+
+    def script_ids(self) -> list[str]:
+        return list(self._script_ids)
+
+    def update_config(self, new_cfg: dict) -> list[str]:
+        changed: list[str] = []
+
+        new_relay = self._cfg_float(
+            new_cfg, "relay_timeout", RELAY_TIMEOUT, minimum=1.0,
+        )
+        if new_relay != self._relay_timeout:
+            self._relay_timeout = new_relay
+            changed.append("relay_timeout")
+
+        new_tls = self._cfg_float(
+            new_cfg, "tls_connect_timeout", TLS_CONNECT_TIMEOUT, minimum=1.0,
+        )
+        if new_tls != self._tls_connect_timeout:
+            self._tls_connect_timeout = new_tls
+            changed.append("tls_connect_timeout")
+
+        new_max = self._cfg_int(
+            new_cfg, "max_response_body_bytes", MAX_RESPONSE_BODY_BYTES,
+            minimum=1024,
+        )
+        if new_max != self._max_response_body_bytes:
+            self._max_response_body_bytes = new_max
+            changed.append("max_response_body_bytes")
+
+        new_verify = bool(new_cfg.get("verify_ssl", True))
+        if new_verify != self.verify_ssl:
+            self.verify_ssl = new_verify
+            changed.append("verify_ssl")
+
+        try:
+            new_parallel = int(new_cfg.get("parallel_relay", 1))
+        except (TypeError, ValueError):
+            new_parallel = 1
+        new_parallel = max(1, min(new_parallel, len(self._script_ids)))
+        if new_parallel != self._parallel_relay:
+            self._parallel_relay = new_parallel
+            changed.append("parallel_relay")
+
+        new_sni = _build_sni_pool(self.sni_host, new_cfg.get("front_domains"))
+        if new_sni != self._sni_hosts:
+            self._sni_hosts = new_sni
+            self._sni_idx = 0
+            changed.append("front_domains")
+
+        return changed
+
     async def _stats_logger(self):
         """Periodically log top hosts by bytes. DEBUG-level, low overhead."""
         interval = STATS_LOG_INTERVAL
@@ -1009,6 +1107,7 @@ class DomainFronter:
         finally:
             latency_ns = int((time.perf_counter() - t0) * 1e9)
             self._record_site(url, len(result), latency_ns, errored)
+            self._record_chain_health(result, errored)
 
     async def _coalesced_submit(self, key: str, payload: dict) -> bytes:
         """Dedup concurrent requests for the same URL (no Range header).

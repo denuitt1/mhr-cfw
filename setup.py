@@ -193,6 +193,10 @@ def main() -> int:
     print()
     print(bold("Next step:"))
     print(f"  python main.py")
+    if cfg.get("dashboard_enabled", True):
+        host = cfg.get("dashboard_host", "127.0.0.1")
+        port = cfg.get("dashboard_port", 7878)
+        print(dim(f"  Dashboard will be at http://{host}:{port}/"))
     print()
     print(yellow("Reminder: the AUTH_KEY inside apps_script/Code.gs must match the auth_key"))
     print(yellow("you just entered - otherwise the relay will return 'unauthorized'."))

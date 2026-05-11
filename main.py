@@ -22,11 +22,12 @@ if _SRC_DIR not in sys.path:
 
 from cert_installer import install_ca, uninstall_ca, is_ca_trusted
 from constants import __version__
+from dashboard import Dashboard
 from lan_utils import log_lan_access
 from google_ip_scanner import scan_sync
 from logging_utils import configure as configure_logging, print_banner
 from mitm import CA_CERT_FILE
-from proxy_server import ProxyServer
+from supervisor import Supervisor
 
 
 def setup_logging(level_name: str):
@@ -281,7 +282,7 @@ def main():
         log_lan_access(config.get("listen_port", 8080), socks_port)
 
     try:
-        asyncio.run(_run(config))
+        asyncio.run(_run(config, config_path))
     except KeyboardInterrupt:
         log.info("Stopped")
 
@@ -305,15 +306,32 @@ def _make_exception_handler(log):
     return handler
 
 
-async def _run(config):
+async def _run(config, config_path):
     loop = asyncio.get_running_loop()
     _log = logging.getLogger("asyncio")
     loop.set_exception_handler(_make_exception_handler(_log))
-    server = ProxyServer(config)
+
+    supervisor = Supervisor(config, config_path)
+
+    dashboard = None
+    if config.get("dashboard_enabled", True):
+        dashboard_host = config.get("dashboard_host", "127.0.0.1")
+        try:
+            dashboard_port = int(config.get("dashboard_port", 7878))
+        except (TypeError, ValueError):
+            dashboard_port = 7878
+        dashboard = Dashboard(supervisor, dashboard_host, dashboard_port)
+
+    await supervisor.start()
+    if dashboard is not None:
+        await dashboard.start()
+
     try:
-        await server.start()
+        await supervisor.wait()
     finally:
-        await server.stop()
+        if dashboard is not None:
+            await dashboard.stop()
+        await supervisor.stop()
 
 
 if __name__ == "__main__":
