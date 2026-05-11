@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>mhr-cfw dashboard</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 7l8-4 8 4v10l-8 4-8-4V7z"></path>
+        <path d="M4 7l8 4 8-4"></path>
+        <path d="M12 11v10"></path>
+      </symbol>
+      <symbol id="i-activity" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+      </symbol>
+      <symbol id="i-sliders" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="4" y1="21" x2="4" y2="14"></line>
+        <line x1="4" y1="10" x2="4" y2="3"></line>
+        <line x1="12" y1="21" x2="12" y2="12"></line>
+        <line x1="12" y1="8" x2="12" y2="3"></line>
+        <line x1="20" y1="21" x2="20" y2="16"></line>
+        <line x1="20" y1="12" x2="20" y2="3"></line>
+        <line x1="1" y1="14" x2="7" y2="14"></line>
+        <line x1="9" y1="8" x2="15" y2="8"></line>
+        <line x1="17" y1="16" x2="23" y2="16"></line>
+      </symbol>
+      <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"></polyline>
+        <polyline points="1 20 1 14 7 14"></polyline>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
+        <path d="M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+      </symbol>
+      <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="2" y1="12" x2="22" y2="12"></line>
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+      </symbol>
+      <symbol id="i-arrow-up-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="7" y1="17" x2="17" y2="7"></line>
+        <polyline points="7 7 17 7 17 17"></polyline>
+      </symbol>
+      <symbol id="i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+      </symbol>
+      <symbol id="i-braces" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5a2 2 0 0 0 2 2h1"></path>
+        <path d="M16 21h1a2 2 0 0 0 2-2v-5a2 2 0 0 1 2-2 2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"></path>
+      </symbol>
+      <symbol id="i-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+      </symbol>
+      <symbol id="i-server" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="3" width="20" height="6" rx="2"></rect>
+        <rect x="2" y="15" width="20" height="6" rx="2"></rect>
+        <line x1="6" y1="6" x2="6.01" y2="6"></line>
+        <line x1="6" y1="18" x2="6.01" y2="18"></line>
+      </symbol>
+      <symbol id="i-cpu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+        <rect x="9" y="9" width="6" height="6"></rect>
+        <line x1="9" y1="1" x2="9" y2="4"></line>
+        <line x1="15" y1="1" x2="15" y2="4"></line>
+        <line x1="9" y1="20" x2="9" y2="23"></line>
+        <line x1="15" y1="20" x2="15" y2="23"></line>
+        <line x1="20" y1="9" x2="23" y2="9"></line>
+        <line x1="20" y1="14" x2="23" y2="14"></line>
+        <line x1="1" y1="9" x2="4" y2="9"></line>
+        <line x1="1" y1="14" x2="4" y2="14"></line>
+      </symbol>
+      <symbol id="i-terminal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="4 17 10 11 4 5"></polyline>
+        <line x1="12" y1="19" x2="20" y2="19"></line>
+      </symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+      </symbol>
+      <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </symbol>
+      <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 5 6 21 6"></polyline>
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+        <path d="M10 11v6M14 11v6"></path>
+        <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"></path>
+      </symbol>
+      <symbol id="i-save" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+        <polyline points="7 3 7 8 15 8"></polyline>
+      </symbol>
+      <symbol id="i-undo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="1 4 1 10 7 10"></polyline>
+        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+      </symbol>
+    </defs>
+  </svg>
+
+  <header>
+    <h1><svg class="brand"><use href="#i-logo"/></svg>mhr-cfw</h1>
+    <nav>
+      <button data-tab="status" class="tab active" type="button">
+        <svg class="ico"><use href="#i-activity"/></svg>Status
+      </button>
+      <button data-tab="config" class="tab" type="button">
+        <svg class="ico"><use href="#i-sliders"/></svg>Config
+      </button>
+    </nav>
+    <div class="header-right">
+      <span id="last-refresh"></span>
+      <button id="refresh-btn" type="button">
+        <svg class="ico"><use href="#i-refresh"/></svg>Refresh
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section id="status-tab" class="tab-panel active">
+      <div class="grid">
+        <div class="card" id="card-scripts">
+          <h2><svg class="ico card-ico"><use href="#i-braces"/></svg>Apps Script deployments</h2>
+          <div class="dots"></div>
+        </div>
+        <div class="card" id="card-worker">
+          <h2><svg class="ico card-ico"><use href="#i-cloud"/></svg>Worker chain</h2>
+          <div class="dots"></div>
+        </div>
+        <div class="card" id="card-upstream">
+          <h2><svg class="ico card-ico"><use href="#i-server"/></svg>Upstream forwarder</h2>
+          <div class="dots"></div>
+        </div>
+        <div class="card-pair">
+          <div class="card" id="card-sni">
+            <h2><svg class="ico card-ico"><use href="#i-globe"/></svg>Google SNI pool</h2>
+            <p class="hint">Active TLS handshake to <code data-bind="google_ip"></code> with each SNI in the rotation.</p>
+            <div class="dots"></div>
+          </div>
+          <div class="card" id="card-direct">
+            <h2><svg class="ico card-ico"><use href="#i-arrow-up-right"/></svg>Direct Google tunnel</h2>
+            <div class="dots"></div>
+          </div>
+        </div>
+        <div class="card-pair">
+          <div class="card" id="card-cert">
+            <h2>
+              <svg class="ico card-ico"><use href="#i-shield"/></svg>MITM CA certificate
+              <span class="cert-flags" id="cert-flags"></span>
+            </h2>
+            <div class="cert-info"></div>
+            <div class="card-actions">
+              <button id="cert-install" type="button">
+                <svg class="ico"><use href="#i-check"/></svg>Install
+              </button>
+              <button id="cert-uninstall" type="button">
+                <svg class="ico"><use href="#i-trash"/></svg>Uninstall
+              </button>
+            </div>
+          </div>
+          <div class="card" id="card-youtube">
+            <h2>
+              <svg class="ico card-ico"><use href="#i-play"/></svg>YouTube via relay
+              <label class="switch" tabindex="0">
+                <input type="checkbox" id="youtube-toggle">
+                <span class="slider"></span>
+                <span class="popover popover-switch">
+                  <strong>YouTube via relay</strong>
+                  <span><strong>Off (default):</strong> YouTube goes via the SNI-rewrite tunnel directly to Google.<br><strong>On:</strong> YouTube traffic is tunneled through Apps Script.</span>
+                </span>
+              </label>
+            </h2>
+          </div>
+        </div>
+        <div class="card-pair">
+          <div class="card" id="card-system">
+            <h2><svg class="ico card-ico"><use href="#i-cpu"/></svg>System</h2>
+            <div class="system-info"></div>
+          </div>
+          <div class="card" id="card-lan">
+            <h2>
+              <svg class="ico card-ico"><use href="#i-globe"/></svg>LAN sharing
+              <label class="switch" title="Bind the proxy to all interfaces so other devices on your network can use it">
+                <input type="checkbox" id="lan-toggle">
+                <span class="slider"></span>
+              </label>
+            </h2>
+            <div class="lan-info"></div>
+          </div>
+        </div>
+        <div class="card card-wide" id="card-logs">
+          <h2><svg class="ico card-ico"><use href="#i-terminal"/></svg>Logs</h2>
+          <div class="log-pane" id="log-pane"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="config-tab" class="tab-panel">
+      <form id="config-form" autocomplete="off"></form>
+      <div class="config-actions">
+        <button id="save-config" type="button" class="primary">
+          <svg class="ico"><use href="#i-save"/></svg>Save
+        </button>
+        <button id="reset-config" type="button">
+          <svg class="ico"><use href="#i-undo"/></svg>Reset
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

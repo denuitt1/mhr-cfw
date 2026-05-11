@@ -309,6 +309,100 @@ class ProxyServer:
             normalized = list(cls._DOWNLOAD_DEFAULT_EXTS)
         return tuple(normalized), any_extension
 
+    def update_config(self, new_cfg: dict) -> list[str]:
+        changed: list[str] = []
+
+        new_hosts = dict(new_cfg.get("hosts", {}) or {})
+        if new_hosts != self._hosts:
+            self._hosts = new_hosts
+            changed.append("hosts")
+
+        new_excl = {
+            h.lower().rstrip(".")
+            for h in (
+                list(self._GOOGLE_DIRECT_EXACT_EXCLUDE) +
+                list(new_cfg.get("direct_google_exclude", []))
+            )
+        }
+        if new_excl != self._direct_google_exclude:
+            self._direct_google_exclude = new_excl
+            changed.append("direct_google_exclude")
+
+        new_allow = {
+            h.lower().rstrip(".")
+            for h in (
+                list(self._GOOGLE_DIRECT_ALLOW_EXACT) +
+                list(new_cfg.get("direct_google_allow", []))
+            )
+        }
+        if new_allow != self._direct_google_allow:
+            self._direct_google_allow = new_allow
+            changed.append("direct_google_allow")
+
+        new_block = self._load_host_rules(new_cfg.get("block_hosts", []))
+        if new_block != self._block_hosts:
+            self._block_hosts = new_block
+            changed.append("block_hosts")
+        new_bypass = self._load_host_rules(new_cfg.get("bypass_hosts", []))
+        if new_bypass != self._bypass_hosts:
+            self._bypass_hosts = new_bypass
+            changed.append("bypass_hosts")
+
+        if new_cfg.get("youtube_via_relay", False):
+            new_sni_rewrite = tuple(
+                s for s in SNI_REWRITE_SUFFIXES
+                if s not in self._YOUTUBE_SNI_SUFFIXES
+            )
+        else:
+            new_sni_rewrite = SNI_REWRITE_SUFFIXES
+        if new_sni_rewrite != self._SNI_REWRITE_SUFFIXES:
+            self._SNI_REWRITE_SUFFIXES = new_sni_rewrite
+            changed.append("youtube_via_relay")
+
+        new_tcp = self._cfg_float(
+            new_cfg, "tcp_connect_timeout", TCP_CONNECT_TIMEOUT, minimum=1.0,
+        )
+        if new_tcp != self._tcp_connect_timeout:
+            self._tcp_connect_timeout = new_tcp
+            changed.append("tcp_connect_timeout")
+
+        new_min = self._cfg_int(
+            new_cfg, "chunked_download_min_size", 5 * 1024 * 1024, minimum=0,
+        )
+        if new_min != self._download_min_size:
+            self._download_min_size = new_min
+            changed.append("chunked_download_min_size")
+
+        new_chunk = self._cfg_int(
+            new_cfg, "chunked_download_chunk_size", 512 * 1024, minimum=64 * 1024,
+        )
+        if new_chunk != self._download_chunk_size:
+            self._download_chunk_size = new_chunk
+            changed.append("chunked_download_chunk_size")
+
+        new_par = self._cfg_int(
+            new_cfg, "chunked_download_max_parallel", 8, minimum=1,
+        )
+        if new_par != self._download_max_parallel:
+            self._download_max_parallel = new_par
+            changed.append("chunked_download_max_parallel")
+
+        new_maxc = self._cfg_int(
+            new_cfg, "chunked_download_max_chunks", 256, minimum=1,
+        )
+        if new_maxc != self._download_max_chunks:
+            self._download_max_chunks = new_maxc
+            changed.append("chunked_download_max_chunks")
+
+        new_exts = self._normalize_download_extensions(
+            new_cfg.get("chunked_download_extensions", list(self._DOWNLOAD_DEFAULT_EXTS))
+        )
+        if new_exts != (self._download_extensions, self._download_any_extension):
+            self._download_extensions, self._download_any_extension = new_exts
+            changed.append("chunked_download_extensions")
+
+        return changed
+
     def _track_current_task(self) -> asyncio.Task | None:
         task = asyncio.current_task()
         if task is not None:
@@ -448,10 +542,9 @@ class ProxyServer:
             else:
                 log.info(log_msg, *log_args)
 
-    async def start(self):
+    async def bind(self):
         http_srv = await asyncio.start_server(self._on_client, self.host, self.port)
         socks_srv = None
-
         if self.socks_enabled:
             try:
                 socks_srv = await asyncio.start_server(
@@ -460,19 +553,19 @@ class ProxyServer:
             except OSError as e:
                 log.error("SOCKS5 listener failed on %s:%d: %s",
                           self.socks_host, self.socks_port, e)
-
         self._servers = [s for s in (http_srv, socks_srv) if s]
-
-        log.info(
-            "HTTP proxy listening on %s:%d",
-            self.host, self.port,
-        )
+        log.info("HTTP proxy listening on %s:%d", self.host, self.port)
         if socks_srv:
             log.info(
                 "SOCKS5 proxy listening on %s:%d",
                 self.socks_host, self.socks_port,
             )
 
+    async def serve(self):
+        if not self._servers:
+            return
+        http_srv = self._servers[0]
+        socks_srv = self._servers[1] if len(self._servers) > 1 else None
         try:
             async with http_srv:
                 if socks_srv:
@@ -485,6 +578,10 @@ class ProxyServer:
                     await http_srv.serve_forever()
         except asyncio.CancelledError:
             raise
+
+    async def start(self):
+        await self.bind()
+        await self.serve()
 
     async def stop(self):
         """Shut down all listeners and release relay resources."""

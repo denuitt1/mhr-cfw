@@ -115,12 +115,8 @@ def configure_apps_script(cfg: dict) -> dict:
         default=None,
     )
     ids = [x.strip() for x in ids_raw.split(",") if x.strip()]
-    if len(ids) == 1:
-        cfg["script_id"] = ids[0]
-        cfg.pop("script_ids", None)
-    else:
-        cfg["script_ids"] = ids
-        cfg.pop("script_id", None)
+    cfg["script_ids"] = ids
+    cfg.pop("script_id", None)
     return cfg
 
 
@@ -193,6 +189,10 @@ def main() -> int:
     print()
     print(bold("Next step:"))
     print(f"  python main.py")
+    if cfg.get("dashboard_enabled", True):
+        host = cfg.get("dashboard_host", "127.0.0.1")
+        port = cfg.get("dashboard_port", 7878)
+        print(dim(f"  Dashboard will be at http://{host}:{port}/"))
     print()
     print(yellow("Reminder: the AUTH_KEY inside apps_script/Code.gs must match the auth_key"))
     print(yellow("you just entered - otherwise the relay will return 'unauthorized'."))
