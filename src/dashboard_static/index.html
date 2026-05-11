@@ -167,12 +167,15 @@
           <div class="card" id="card-youtube">
             <h2>
               <svg class="ico card-ico"><use href="#i-play"/></svg>YouTube via relay
-              <label class="switch" title="Route YouTube hosts through the GAS relay instead of the direct/SNI tunnel">
+              <label class="switch" tabindex="0">
                 <input type="checkbox" id="youtube-toggle">
                 <span class="slider"></span>
+                <span class="popover popover-switch">
+                  <strong>YouTube via relay</strong>
+                  <span><strong>Off (default):</strong> YouTube goes via the SNI-rewrite tunnel directly to Google.<br><strong>On:</strong> YouTube traffic is tunneled through Apps Script.</span>
+                </span>
               </label>
             </h2>
-            <p class="hint">Off (default): YouTube goes via the SNI-rewrite tunnel directly to Google. On: YouTube traffic is tunneled through Apps Script.</p>
           </div>
         </div>
         <div class="card-pair">

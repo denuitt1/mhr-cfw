@@ -24,7 +24,7 @@ HARD_KEYS = frozenset({
     "listen_host", "listen_port",
     "socks5_host", "socks5_port", "socks5_enabled",
     "auth_key",
-    "script_id", "script_ids",
+    "script_ids",
     "google_ip", "front_domain",
 })
 
@@ -102,11 +102,11 @@ class Supervisor:
         ak = str(new_cfg.get("auth_key", ""))
         if ak in _PLACEHOLDER_AUTH_KEYS:
             errors.append("auth_key is empty or a placeholder")
-        sid = new_cfg.get("script_ids") or new_cfg.get("script_id")
-        if not sid:
-            errors.append("script_id or script_ids must be set")
-        elif isinstance(sid, str) and sid == "YOUR_APPS_SCRIPT_DEPLOYMENT_ID":
-            errors.append("script_id is the placeholder value")
+        sids = new_cfg.get("script_ids") or []
+        if not isinstance(sids, list) or not sids:
+            errors.append("script_ids must be a non-empty list")
+        elif sids == ["YOUR_APPS_SCRIPT_DEPLOYMENT_ID"]:
+            errors.append("script_ids still holds the placeholder value")
         try:
             lp = int(new_cfg.get("listen_port", 8080))
             sp = int(new_cfg.get("socks5_port", 1080))

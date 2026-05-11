@@ -496,7 +496,7 @@ const CONFIG_GROUPS = {
   Relay: [
     "auth_key", "mode",
     "google_ip", "front_domain", "front_domains",
-    "script_id", "script_ids",
+    "script_ids",
     "verify_ssl", "parallel_relay",
     "relay_timeout",
     "upstream_forwarder_url",

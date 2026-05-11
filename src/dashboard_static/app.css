@@ -274,6 +274,58 @@ main {
 .switch input:checked + .slider { background: var(--green); }
 .switch input:checked + .slider::before { transform: translateX(16px); background: #fff; }
 .switch input:disabled + .slider { opacity: 0.5; cursor: not-allowed; }
+
+.popover-switch {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 260px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.55rem 0.7rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 0.78rem;
+  font-weight: normal;
+  letter-spacing: normal;
+  line-height: 1.4;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-3px);
+  transition: opacity 120ms, transform 120ms, visibility 120ms;
+  z-index: 5;
+  white-space: normal;
+  text-align: left;
+  pointer-events: none;
+}
+.popover-switch strong {
+  display: block;
+  font-size: 0.8rem;
+  margin-bottom: 0.2rem;
+  color: var(--text);
+}
+.popover-switch > span { color: var(--muted); }
+.popover-switch > span strong { display: inline; margin: 0; color: var(--text); font-size: inherit; }
+.popover-switch::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  right: 10px;
+  width: 8px;
+  height: 8px;
+  background: var(--bg);
+  border-left: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+  transform: rotate(45deg);
+}
+.switch:hover .popover-switch,
+.switch:focus-within .popover-switch {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
 .cert-flag {
   position: relative;
   display: inline-flex;

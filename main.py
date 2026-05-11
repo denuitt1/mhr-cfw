@@ -167,11 +167,14 @@ def main():
         print(f"Invalid JSON in config: {e}")
         sys.exit(1)
 
-    # Environment variable overrides
+    legacy_sid = config.pop("script_id", None)
+    if legacy_sid and not config.get("script_ids"):
+        config["script_ids"] = [legacy_sid] if isinstance(legacy_sid, str) else list(legacy_sid)
+
     if os.environ.get("DFT_AUTH_KEY"):
         config["auth_key"] = os.environ["DFT_AUTH_KEY"]
     if os.environ.get("DFT_SCRIPT_ID"):
-        config["script_id"] = os.environ["DFT_SCRIPT_ID"]
+        config["script_ids"] = [os.environ["DFT_SCRIPT_ID"]]
 
     # CLI argument overrides
     if args.port is not None:
@@ -210,12 +213,11 @@ def main():
         )
         sys.exit(1)
 
-    # Always Apps Script mode — force-set for backward-compat configs.
     config["mode"] = "apps_script"
-    sid = config.get("script_ids") or config.get("script_id")
-    if not sid or (isinstance(sid, str) and sid == "YOUR_APPS_SCRIPT_DEPLOYMENT_ID"):
-        print("Missing 'script_id' in config.")
-        print("Deploy the Apps Script from Code.gs and paste the Deployment ID.")
+    sids = config.get("script_ids") or []
+    if not isinstance(sids, list) or not sids or sids == ["YOUR_APPS_SCRIPT_DEPLOYMENT_ID"]:
+        print("Missing 'script_ids' in config.")
+        print("Deploy the Apps Script from Code.gs and paste the Deployment ID(s).")
         sys.exit(1)
 
     # ── Google IP Scanner ──────────────────────────────────────────────────
@@ -235,13 +237,10 @@ def main():
 
     log.info("Apps Script relay : SNI=%s → script.google.com",
              config.get("front_domain", "www.google.com"))
-    script_ids = config.get("script_ids") or config.get("script_id")
-    if isinstance(script_ids, list):
-        log.info("Script IDs        : %d scripts (sticky per-host)", len(script_ids))
-        for i, sid in enumerate(script_ids):
-            log.info("  [%d] %s", i + 1, sid)
-    else:
-        log.info("Script ID         : %s", script_ids)
+    script_ids = config.get("script_ids") or []
+    log.info("Script IDs        : %d scripts (sticky per-host)", len(script_ids))
+    for i, sid in enumerate(script_ids):
+        log.info("  [%d] %s", i + 1, sid)
 
     # Ensure CA file exists before checking / installing it.
     # MITMCertManager generates ca/ca.crt on first instantiation.

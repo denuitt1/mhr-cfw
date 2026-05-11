@@ -115,12 +115,8 @@ def configure_apps_script(cfg: dict) -> dict:
         default=None,
     )
     ids = [x.strip() for x in ids_raw.split(",") if x.strip()]
-    if len(ids) == 1:
-        cfg["script_id"] = ids[0]
-        cfg.pop("script_ids", None)
-    else:
-        cfg["script_ids"] = ids
-        cfg.pop("script_id", None)
+    cfg["script_ids"] = ids
+    cfg.pop("script_id", None)
     return cfg
 
 

@@ -113,11 +113,9 @@ class DomainFronter:
         )
         self._sni_idx = 0
         self.http_host = "script.google.com"
-        # Multi-script round-robin for higher throughput
-        script = config.get("script_ids") or config.get("script_id")
-        self._script_ids = script if isinstance(script, list) else [script]
+        self._script_ids = list(config.get("script_ids") or [])
         self._script_idx = 0
-        self.script_id = self._script_ids[0]  # backward compat / logging
+        self.script_id = self._script_ids[0] if self._script_ids else ""
         self._dev_available = False  # True if /dev endpoint works (no redirect, ~400ms faster)
 
         # Fan-out parallel relay: fire N Apps Script instances concurrently,
