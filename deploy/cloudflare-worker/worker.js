@@ -13,7 +13,7 @@ export default {
                 return json({ e: "loop detected" }, 508);
             }
 
-            if (request.method == "GET") {
+            if (request.method === "GET") {
                 return json({ e: "Relay is Active." }, 200);
             }
 
@@ -38,7 +38,11 @@ export default {
             }
 
             const upstreamUrl = (env && env.UPSTREAM_FORWARDER_URL) || "";
-            if (upstreamUrl) {
+
+            // f === 1: forward; f === 0: skip; missing: legacy client → forward (compat).
+            const wantForward = (req.f === 1) || (req.f === undefined);
+
+            if (upstreamUrl && wantForward) {
                 const upstreamResp = await forwardViaUpstream(req, env, upstreamUrl);
                 if (upstreamResp) return upstreamResp;
                 // fall through to direct fetch only when fail-mode is open
@@ -60,8 +64,7 @@ export default {
             };
 
             if (req.b) {
-                const binary = Uint8Array.from(atob(req.b), c => c.charCodeAt(0));
-                fetchOptions.body = binary;
+                fetchOptions.body = Uint8Array.from(atob(req.b), c => c.charCodeAt(0));
             }
 
             const resp = await fetch(targetUrl.toString(), fetchOptions);

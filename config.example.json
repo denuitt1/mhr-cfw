@@ -60,6 +60,7 @@
 		".lan",
 		".home.arpa"
 	],
+	"forwarder_hosts": [],
 	"direct_google_exclude": [
 		"gemini.google.com",
 		"aistudio.google.com",
