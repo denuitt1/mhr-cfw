@@ -86,7 +86,7 @@ pip install -r requirements.txt
 
 ### 4 - Run
 
-Click on the `run.bat` file (on windows) or `run.sh` file (on linux) to start the relay.
+Click on the `start.bat` file (on windows) or `start.sh` file (on linux) to start the relay.
 
 If you're running for the first time it will prompt a setup wizard where you have to enter the AUTH_KEY and Google Apps Script Deployment ID.
 You should see a message saying the HTTP proxy is running on `127.0.0.1:8085`
