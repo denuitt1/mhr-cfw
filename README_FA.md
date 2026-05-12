@@ -33,6 +33,7 @@
 - [تنظیمات پیشرفته config.json](#تنظیمات-پیشرفته-configjson)
 - [ابزار اسکن IP گوگل](#ابزار-اسکن-ip-گوگل)
 - [اشتراک‌گذاری در شبکه محلی (LAN)](#اشتراکگذاری-در-شبکه-محلی-lan)
+- [تنظیمات موبایل ios/Android](#تنظیمات-موبایل)
 - [راه‌اندازی روی لینوکس و مک](#راهاندازی-روی-لینوکس-و-مک)
 - [عیب‌یابی](#عیبیابی)
 - [سؤالات متداول](#سؤالات-متداول)
@@ -750,8 +751,9 @@ IP پیشنهادشده را در `config.json` در قسمت `google_ip` قرا
 INFO  [Main]  LAN HTTP proxy   : 192.168.1.100:8085, 192.168.1.100:8085
 INFO  [Main]  LAN SOCKS5 proxy : 192.168.1.100:1080
 ```
+## تنظیمات موبایل
 
-**تنظیم موبایل (Android/iOS):**
+**موبایل (Android):**
 1. به تنظیمات WiFi بروید
 2. شبکه متصل را نگه دارید یا روی آیکون ⚙️ بزنید
 3. گزینه **Proxy** را روی **Manual** بگذارید
@@ -759,6 +761,43 @@ INFO  [Main]  LAN SOCKS5 proxy : 192.168.1.100:1080
 5. **Port**: `8085`
 
 > **توجه:** فایروال ویندوز ممکن است اتصال از شبکه محلی را مسدود کند. اگر موبایل نتوانست متصل شود، یک قانون استثنا در Windows Defender Firewall برای پورت ۸۰۸۵ اضافه کنید.
+
+
+**آیفون (ios)**
+
+۱- فایل ca.crt که در کامپیوتر ساخته شده است را در برنامه Files آیفون کپی کنید.
+
+۲- در آیفون روی فایل ca.crt کلیک کنید.
+
+۳- وارد Settings شوید و روی گزینه Profile Downloaded کلیک کنید.
+![image](https://github.com/user-attachments/assets/75aa81fc-410a-43ac-a620-eb3ea9cd6832)
+
+۴- روی گزینه Install کلیک کنید.
+![image](https://github.com/user-attachments/assets/5f269f27-66b0-4e16-9d9f-52f9762bcaa9)
+
+۵- پسورد موبایل را بزنید و Install کنید.
+![image](https://github.com/user-attachments/assets/5e87524f-1eeb-4749-b3d8-a468919cb085)
+
+۶- وارد Settings -> General -> About شوید.
+![image](https://github.com/user-attachments/assets/39953da9-5b7c-455b-be19-695ad9c13c90)
+
+۷- تا پایین صفحه بروید و روی گزینه Certificate Trust Settings کلیک کنید.
+![image](https://github.com/user-attachments/assets/ec695e7e-2e48-41fc-b642-e271189d7c0d)
+
+۸- گزینه mhr-cfw را فعال کنید.
+![image](https://github.com/user-attachments/assets/38c2a4aa-c1ef-4f04-bb57-09d27c699ebf)
+
+۹- وارد Settings-> Wi-Fi شوید.
+![image](https://github.com/user-attachments/assets/4a40903f-632e-42e8-9aa8-f5ad7616971a)
+
+۱۰- روی علامت i آبی رنگ روبروی نام شبکه وای فای کلیک کنید.
+![image](https://github.com/user-attachments/assets/86bbd225-3b6f-45df-b30c-3702aeec56da)
+
+۱۱- به پایین صفحه بروید و روی گزینه Configure Proxy کلیک کنید.
+![image](https://github.com/user-attachments/assets/d0b4329b-2bab-4b57-a676-36478c50f3c6)
+
+۱۲- گزینه Manual را انتخاب کنید و آدرس http و پورت سرور که برنامه را نصب کردید وارد کنید و گزینه Save را بزنید.
+![image](https://github.com/user-attachments/assets/90928a5c-cb57-43fd-b8c6-a59bbaa05a5c)
 
 ---
 
