@@ -156,23 +156,33 @@ Run `CMD` as Administrator:
 netsh interface portproxy add v4tov4 listenaddress=192.168.1.8 listenport=8085 connectaddress=127.0.0.1 connectport=8085
 netsh advfirewall firewall add rule name="Proxy 8085" dir=in action=allow protocol=TCP localport=8085
 ```
+
+**Optional**: If you want to use VPN clients like v2ray, v2box, etc., using `SOCKS`:
+
+```cmd
+netsh advfirewall firewall add rule name="Proxy 1080" dir=in action=allow protocol=TCP localport=1080
+```
  
-**3. Configure proxy on your phone**
- 
-Connect your phone to the same Wi-Fi, then set the proxy manually:
-- **Host:** your host IP (e.g. `192.168.1.8`)
-- **Port:** `8085`
- 
-On Android: **Settings → Wi-Fi → Modify → Proxy → Manual**  
-On iPhone: **Settings → Wi-Fi → (network) → HTTP Proxy → Manual**
- 
-**4. Install the CA certificate**
+**3. Install the CA certificate**
  
 Transfer `ca.crt` to your phone, then:
  
 - **Android:** Settings → Security → Install a certificate → CA certificate
 - **iPhone:** Open the file → install profile → Settings → General → About → Certificate Trust Settings → enable it
 
+> **iPhone**: If you installed the certificate and are still getting errors like "Connection is not private" or nothing works on your device, you need to enable full trust for the root certificate. Go to **Settings → General → About → Certificate Trust Settings → toggle on Enable Full Trust for Root Certificate**.
+
+**4. Configure proxy on your phone**
+ 
+Connect your phone to the same Wi-Fi, then set the proxy manually:
+- **Host:** your host IP (e.g. `192.168.1.8`)
+- **Port:** `8085` (SOCKS: `1080`)
+ 
+On Android: **Settings → Wi-Fi → Modify → Proxy → Manual**  
+On iPhone: **Settings → Wi-Fi → (network) → HTTP Proxy → Manual**
+
+On Clients: **VPN Client (Like v2ray, v2box) → Add Manual Config → SOCKS/SOCKS5**
+> If you have to use DNS, **DoU** (DNS-over-UDP) preferably works best.
 
 ---
 
